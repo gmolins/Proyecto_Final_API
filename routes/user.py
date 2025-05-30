@@ -20,10 +20,13 @@ from crud.user import (
 
 router = APIRouter()
 
-@router.post("/users", response_model=User)
-def create(user: UserCreate, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
+@router.post("/user", response_model=User)
+def create(user: UserCreate, session: Session = Depends(get_session), current_user: dict = Depends(require_role("admin"))):
     try:
-        user_data = User(**user.model_dump(exclude={"password"}), hashed_password=hash_password(user.password), created_at=datetime.now())
+        user_data = User(**user.model_dump(exclude={"password"}), 
+                         hashed_password=hash_password(user.password), 
+                         created_at=datetime.now(), 
+                         role=user.role)
         return create_user(session, user_data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -85,7 +88,7 @@ def update(
         }]
     ),
     session: Session = Depends(get_session),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role("admin"))
 ):
     try:
         updated_user = update_user_by_id(session, user_id, user_data)

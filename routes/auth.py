@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select, literal
+from sqlalchemy import select
 from sqlmodel import Session
-from auth.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_token, verify_access_token
+from auth.jwt import create_access_token, create_refresh_token, decode_refresh_token, revoke_access_token, decode_access_token
 from auth.hashing import hash_password, verify_password
 from db.database import get_session
 from auth.dependencies import get_current_user, oauth2_scheme
@@ -25,7 +25,7 @@ def register(user: UserCreate, session: Session = Depends(get_session)):
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        role=user.role,
+        role="user",
         created_at=datetime.now()
     )
     session.add(new_user)
@@ -52,7 +52,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
 
 @router.post("/refresh")
 def refresh_token(refresh_token: str, session: Session = Depends(get_session)):
-    payload = verify_refresh_token(refresh_token)
+    payload = decode_refresh_token(refresh_token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
     query = select(User).where(User.refresh_token == refresh_token) # type: ignore
@@ -73,7 +73,7 @@ def logout(current_user: dict = Depends(get_current_user), token: str = Depends(
     session.commit()
 
     # Revocar el token de acceso
-    revoke_token(token)
+    revoke_access_token(token)
 
     return {"message": "Successfully logged out"}
 
@@ -86,17 +86,17 @@ def forgot_password(email: str = Form(...), session: Session = Depends(get_sessi
     query = select(User).where(User.email == email) # type: ignore
     user = session.scalars(query).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Email not found")
     
     # Generar token de recuperación
-    token = create_access_token({"sub": user.email}, role="reset", expires_minutes=15)
+    token = create_access_token({"sub": user.email}, role="reset")
     
     # Devolver el token directamente
     return {"message": "Use this token to reset your password", "token": token}
 
 @router.post("/reset-password")
 def reset_password(token: str = Form(...), new_password: str = Form(...), session: Session = Depends(get_session)):
-    payload = verify_access_token(token)
+    payload = decode_access_token(token)
     if not payload or payload.get("role") != "reset":
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     

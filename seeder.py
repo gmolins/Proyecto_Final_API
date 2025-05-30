@@ -15,7 +15,7 @@ def seed_data(num_dummies=5):
             users = []
             for i in range(num_dummies):
                 users.append(User(username=f"User {i}", email=f"user{i}@example.com", role=random.choice(["user", "viewer"]), hashed_password=hash_password(f"password{i}"), created_at=datetime.now()))
-            users.append(User(username=f"User {num_dummies}", email=f"admin{i}@example.com", role="admin", hashed_password=hash_password(f"admin{num_dummies}"), created_at=datetime.now()))
+            users.append(User(username=f"User {num_dummies}", email=f"admin{num_dummies}@example.com", role="admin", hashed_password=hash_password(f"admin{num_dummies}"), created_at=datetime.now()))
             session.add_all(users)
             session.commit()
         except Exception as e:

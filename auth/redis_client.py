@@ -1,17 +1,11 @@
 import redis
 
 # Conexión simple, ajusta según configuración real
-r = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
+r = redis.Redis(host="127.0.0.1", port=6379, db=0, decode_responses=True)
 
-def revoke_token(jti: str, exp: int):
-    """Guarda el token revocado en Redis hasta su expiración."""
-    r.setex(f"revoked:{jti}", exp, "revoked")
-
-def is_token_revoked(jti: str) -> bool:
-    """Verifica si el token fue revocado."""
+def redis_update_token(session_type: str, jti: str, ttl: int, status: str):
+    """Store token in Redis until expiration (TTL)"""
     try:
-        return r.exists(f"revoked:{jti}") == 1
+        r.setex(f"{session_type}:{jti}", ttl, f"{status}")
     except redis.ConnectionError as e:
         print(f"Redis connection error: {e}")
-        # Optional: treat Redis as unavailable = allow access or deny by default
-        return False  # or True if you prefer fail-closed
