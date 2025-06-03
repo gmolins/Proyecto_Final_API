@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlmodel import Session
-from auth.jwt import create_access_token, create_refresh_token, decode_refresh_token, revoke_access_token, decode_access_token
+from auth.jwt import create_access_token, create_refresh_token, decode_refresh_token, revoke_token, decode_access_token
 from auth.hashing import hash_password, verify_password
 from db.database import get_session
 from auth.dependencies import get_current_user, oauth2_scheme
@@ -60,6 +60,7 @@ def refresh_token(refresh_token: str, session: Session = Depends(get_session)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     new_access_token = create_access_token({"sub": user.username}, role=user.role)
+
     return {"access_token": new_access_token, "token_type": "bearer"}
 
 @router.post("/logout")
@@ -68,12 +69,14 @@ def logout(current_user: dict = Depends(get_current_user), token: str = Depends(
     user = session.scalars(query).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user.refresh_token = None
-    session.add(user)
-    session.commit()
-
-    # Revocar el token de acceso
-    revoke_access_token(token)
+    
+    revoke_token(token, "access")
+    
+    if user.refresh_token:
+        revoke_token(user.refresh_token, "refresh")
+        user.refresh_token = None
+        session.add(user)
+        session.commit()
 
     return {"message": "Successfully logged out"}
 
@@ -105,6 +108,9 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), sessio
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Revocar token de reset
+    revoke_token(token, "access")
+
     # Actualizar contraseña
     user.hashed_password = hash_password(new_password)
     session.add(user)

@@ -1,6 +1,5 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.templating import Jinja2Templates
 from auth.dependencies import get_current_user
 from dotenv import load_dotenv
@@ -20,8 +19,6 @@ app = FastAPI()
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 
 logger.info('Starting API...')
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # Configuración de Jinja2
 templates = Jinja2Templates(directory="templates")

@@ -23,3 +23,4 @@ class TaskCreate(TaskBase):
 
 class TaskRead(TaskBase):
     id: int
+    status_id: int

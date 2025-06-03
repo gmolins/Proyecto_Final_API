@@ -20,7 +20,7 @@ from crud.user import (
 
 router = APIRouter()
 
-@router.post("/user", response_model=User)
+@router.post("/", response_model=User)
 def create(user: UserCreate, session: Session = Depends(get_session), current_user: dict = Depends(require_role("admin"))):
     try:
         user_data = User(**user.model_dump(exclude={"password"}), 
