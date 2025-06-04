@@ -8,7 +8,7 @@ class StatusBase(SQLModel):
 class Status(StatusBase, table=True):
     id: int = Field(default=None, primary_key=True)
 
-    task: Optional["Task"] = Relationship(back_populates="status", cascade_delete=True) # type: ignore
+    order: Optional[list["Order"]] = Relationship(back_populates="status") # type: ignore
 
 class StatusCreate(StatusBase):
     pass

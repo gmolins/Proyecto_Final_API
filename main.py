@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from log.logger import logger
 from log.middleware import log_middleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from routes import auth, task, todo, user, status
+from routes import auth, order, user, status
 
 import uvicorn
 
@@ -25,8 +25,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Definir las rutas de la APIs
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-app.include_router(task.router, prefix="/api/tasks", tags=["Tasks"])
-app.include_router(todo.router, prefix="/api/todos", tags=["Todo-Lists"])
+app.include_router(order.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(user.router, prefix="/api/users", tags=["Users"])
 app.include_router(status.router, prefix="/api/status", tags=["Status"])
 

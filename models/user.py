@@ -1,10 +1,11 @@
 from datetime import datetime
+from sqlalchemy import ARRAY, JSON, Column, Integer
 from sqlmodel import Relationship, SQLModel, Field
-from typing import List, Optional
+from typing import Optional
 from pydantic import EmailStr
 
 class UserBase(SQLModel):
-    username: str = Field(unique=True)
+    username: str = Field(min_length=3, max_length=100, unique=True)
     email: EmailStr = Field(unique=True)
     role: str = Field(default="user")
 
@@ -13,11 +14,12 @@ class User(UserBase, table=True):
     refresh_token: Optional[str] = None
     hashed_password: str
     created_at: datetime
+    order_ids: Optional[list[int]] = Field(default=None, sa_column=Column(ARRAY(Integer)))
     
-    todolist: List["TodoList"] | None = Relationship(back_populates="user", cascade_delete=True) # type: ignore
-
+    order: Optional[list["Order"]] = Relationship(back_populates="user", cascade_delete=True) # type: ignore
+ 
 class UserCreate(UserBase):
-    password: str
+    password: str   
 
 class UserRead(UserBase):
     id: int
