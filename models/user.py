@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import ARRAY, JSON, Column, Integer
+from sqlalchemy import ARRAY, Column, Integer
 from sqlmodel import Relationship, SQLModel, Field
 from typing import Optional
 from pydantic import EmailStr

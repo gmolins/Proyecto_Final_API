@@ -12,8 +12,8 @@ def create_order(session: Session, order: Order):
 def get_orders(session: Session):
     return session.exec(select(Order)).all()
 
-def get_order_by_id(session: Session, todolist_id: int):
-    return session.get(Order, todolist_id)
+def get_order_by_id(session: Session, order_id: int):
+    return session.get(Order, order_id)
 
 def update_order(session: Session, order_id: int, order_data: dict):
     order = session.get(Order, order_id)

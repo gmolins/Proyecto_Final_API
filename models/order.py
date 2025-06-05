@@ -1,16 +1,16 @@
 from datetime import datetime
-from sqlalchemy import Column, JSON, ARRAY, Integer
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column
 from sqlmodel import Relationship, SQLModel, Field
 from typing import Any, Dict, Optional
 
 class OrderBase(SQLModel):
     created_at: datetime
-    pass
+    product_data: Optional[Dict] = Field(default=None, sa_column=Column(JSONB))
 
 class Order(OrderBase, table=True):
     id: int = Field(default=None, primary_key=True)
     status_id: Optional[int] = Field(default=None, foreign_key="status.id")
-    product_data: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     user_id: int = Field(foreign_key="user.id")
 
     user: "User" = Relationship(back_populates="order") # type: ignore
@@ -21,5 +21,5 @@ class OrderCreate(OrderBase):
 
 class OrderRead(OrderBase):
     id: int
-    product_ids: list[int] | None
-    status_id: int
+    status_id: Optional[int] = Field(default=None, foreign_key="status.id")
+    user_id: int = Field(foreign_key="user.id")

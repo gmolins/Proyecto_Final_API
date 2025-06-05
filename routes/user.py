@@ -22,60 +22,40 @@ router = APIRouter()
 
 @router.post("/", response_model=User)
 def create(user: UserCreate, session: Session = Depends(get_session), current_user: dict = Depends(require_role("admin"))):
-    try:
-        user_data = User(**user.model_dump(exclude={"password"}), 
-                         hashed_password=hash_password(user.password), 
-                         created_at=datetime.now(), 
-                         role=user.role)
-        return create_user(session, user_data)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    user_data = User(**user.model_dump(exclude={"password"}), 
+                        hashed_password=hash_password(user.password), 
+                        created_at=datetime.now(), 
+                        role=user.role)
+    return create_user(session, user_data)
 
 @router.get("/", response_model=list[User])
 def read_all(session: Session = Depends(get_session)):
-    try:
-        return get_all_users(session)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    return get_all_users(session)
     
 @router.get("/wp", response_model=list[User])
 def read_all_wp(skip: int, limit: int, session: Session = Depends(get_session)):
-    try:
-        return get_all_users_wp(session, skip, limit)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    return get_all_users_wp(session, skip, limit)
 
 @router.get("/{user_id}", response_model=User)
 def read(user_id: int, session: Session = Depends(get_session)):
-    try:
-        user = get_user_by_id(session, user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    user = get_user_by_id(session, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
+    return user
 
 @router.get("/name/{name}", response_model=User)
 def read_by_name(name: str, session: Session = Depends(get_session)):
-    try:
-        user = get_user_by_name(session, name)
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    user = get_user_by_name(session, name)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
+    return user
     
 @router.get("/email/{email}", response_model=User)
 def read_by_email(email: str, session: Session = Depends(get_session)):
-    try:
-        user = get_user_by_mail(session, email)
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User with email '{email}' not found")
-        return user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    user = get_user_by_mail(session, email)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with email '{email}' not found")
+    return user
 
 @router.put("/{user_id}", response_model=User)
 def update(
@@ -90,13 +70,10 @@ def update(
     session: Session = Depends(get_session),
     current_user: dict = Depends(require_role("admin"))
 ):
-    try:
-        updated_user = update_user_by_id(session, user_id, user_data)
-        if not updated_user:
-            raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
-        return updated_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    updated_user = update_user_by_id(session, user_id, user_data)
+    if not updated_user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
+    return updated_user
 
 @router.put("/name/{name}", response_model=User)
 def update_by_name(
@@ -111,30 +88,21 @@ def update_by_name(
     session: Session = Depends(get_session),
     current_user: dict = Depends(get_current_user)
 ):
-    try:
-        updated_user = update_user_by_name(session, name, user_data)
-        if not updated_user:
-            raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
-        return updated_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    updated_user = update_user_by_name(session, name, user_data)
+    if not updated_user:
+        raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
+    return updated_user
 
 @router.delete("/{user_id}", response_model=User)
 def delete(user_id: int, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
-    try:
-        deleted_user = delete_user_by_id(session, user_id)
-        if not deleted_user:
-            raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
-        return deleted_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    deleted_user = delete_user_by_id(session, user_id)
+    if not deleted_user:
+        raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
+    return deleted_user
 
 @router.delete("/name/{name}", response_model=User)
 def delete_by_name(name: str, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
-    try:
-        deleted_user = delete_user_by_name(session, name)
-        if not deleted_user:
-            raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
-        return deleted_user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    deleted_user = delete_user_by_name(session, name)
+    if not deleted_user:
+        raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
+    return deleted_user
