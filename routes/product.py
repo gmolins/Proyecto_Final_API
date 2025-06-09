@@ -24,13 +24,17 @@ async def get_all_products(
         tag: Optional[str] = Query(None),
         brand: Optional[str] = Query(None),
         sort_by: Optional[str] = Query(None, description="e.g. price, rating"),
-        sort_order: Optional[str] = Query("desc", description="(asc/desc)")
+        sort_order: Optional[str] = Query("desc", description="(asc/desc)"),
+        skip: Optional[int] = Query(None),
+        limit: Optional[int] = Query(None)
     ):
     try:
         product_data = await fetch_product_data()
 
         filtered = product_data.get("products")
 
+        if skip is not None and limit is not None:
+            filtered = filtered[skip:skip+limit]
         if title:
             filtered = [p for p in filtered if title.lower() in p.get("title", "").lower()]
         if category:
