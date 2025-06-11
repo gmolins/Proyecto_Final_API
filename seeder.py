@@ -1,11 +1,11 @@
 from datetime import datetime
-import random
 from sqlmodel import Session
 from db.database import engine, create_db_and_tables, drop_db_and_tables
 from models.user import User
 from models.order import Order
 from models.status import Status
 from auth.hashing import hash_password
+import argparse
 
 def seed_data(num_dummies=5):
     with Session(engine) as session:
@@ -42,6 +42,18 @@ def seed_data(num_dummies=5):
     print("Tables seeded successfully!")
 
 if __name__ == "__main__":
-    drop_db_and_tables() 
-    create_db_and_tables()
-    seed_data()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--bypass-warning', action='store_true', help='Bypass warning.')
+    args = parser.parse_args()
+    
+    if args.bypass_warning:
+        drop_db_and_tables() 
+        create_db_and_tables()
+        seed_data()
+        exit(0)
+    acknowledge = input("WARNING: All database tables are about to be dropped, continue? (y/N)") == 'y'
+    if acknowledge:
+        drop_db_and_tables() 
+        create_db_and_tables()
+        seed_data()
+            
