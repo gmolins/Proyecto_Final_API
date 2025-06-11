@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Summary</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        p { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Your Order Summary</h1>
+    <p>Order ID: <strong>{{ id }}</strong> | Order Status: <strong>{{ status }}</strong></p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ "%.2f"|format(row[2]) }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ "%.2f"|format(row[4]) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p>Order total: {{ "%.2f"|format(total) }}</p>
+</body>
+</html>

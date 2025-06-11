@@ -1,16 +1,12 @@
-from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
-import pandas as pd
-from io import BytesIO
-from jinja2 import Template
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
-from xhtml2pdf import pisa
-from auth.dependencies import get_current_user
+from auth.dependencies import get_current_user, require_ownership_or_admin
+from crud.order import get_order_by_id, update_order_by_id
 from db.database import get_session
-from models.order import OrderCreate, OrderRead
+from models.order import OrderRead
 from utils.api_client import fetch_product_data  # Importar la función desde el archivo auxiliar
-from pathlib import Path
+import copy
 
 router = APIRouter()
 
@@ -24,7 +20,7 @@ async def get_all_products(
         tag: Optional[str] = Query(None),
         brand: Optional[str] = Query(None),
         sort_by: Optional[str] = Query(None, description="e.g. price, rating"),
-        sort_order: Optional[str] = Query("desc", description="(asc/desc)"),
+        sort_order: Optional[str] = Query(None, description="(asc/desc)"),
         skip: Optional[int] = Query(None),
         limit: Optional[int] = Query(None)
     ):
@@ -64,35 +60,44 @@ async def get_all_products(
         return filtered
     except Exception as e:
         return {"error": str(e)}
-"""
+
 @router.post("/order", response_model=OrderRead)
-async def add_product_by_id(order: OrderCreate, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
-    try:
-        product_data = await fetch_product_data()
+async def add_product_by_id(order_id:int, product_id: int, product_quantity:int = Query(gt=0), session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
+    product_data = await fetch_product_data()
+    filtered = product_data.get("products")
+    for p in filtered:
+        if p.get("id", "") == product_id:
+            order = get_order_by_id(session, order_id)
+            if not order:
+                raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found")
+            
+            require_ownership_or_admin(order.user_id, current_user)
 
-        filtered = product_data.get("products")
+            if order.status_id != 1: # Check if order is already placed
+                raise HTTPException(status_code=403, detail=f"Order with ID {order_id} is already placed!")
 
-        if title:
-            filtered = [p for p in filtered if title.lower() in p.get("title", "").lower()]
-        if category:
-            filtered = [p for p in filtered if p.get("category", "").lower() == category.lower()]
-        if tag:
-            filtered = [p for p in filtered if tag.lower() in [t.lower() for t in p.get("tags", [])]]
-        if brand:
-            filtered = [p for p in filtered if p.get("brand", "").lower() == brand.lower()]
-        if min_price is not None:
-            filtered = [p for p in filtered if isinstance(p.get("price"), (int, float)) and p["price"] >= min_price]
-        if max_price is not None:
-            filtered = [p for p in filtered if isinstance(p.get("price"), (int, float)) and p["price"] <= max_price]
+            updated_products = copy.deepcopy(order.products) if order.products else []
 
-        if sort_by:
-            reverse = sort_order == "desc"
-            try:
-                filtered.sort(key=lambda p: p.get(sort_by, 0), reverse=reverse)
-            except TypeError:
-                raise HTTPException(status_code=400, detail=f"Cannot sort by field: {sort_by}")
+            # Flag to track if product exists
+            product_found = False
 
-        return filtered
-    except Exception as e:
-        return {"error": str(e)}
-"""
+            for i, product in enumerate(updated_products):
+                if p.get("id", "") == product.get("id", ""):
+                    updated_products[i]["title"] = p.get("title")
+                    updated_products[i]["quantity"] += product_quantity
+                    updated_products[i]["price"] = p.get("price")
+                    product_found = True
+                    break
+
+            # If product is not already in the list, append it
+            if not product_found:
+                updated_products.append({
+                    "id": p.get("id"),
+                    "title": p.get("title"),
+                    "quantity": product_quantity,
+                    "price": p.get("price")
+                })
+
+            updated_order = update_order_by_id(session, order_id, {"products": updated_products})
+            return updated_order
+    raise HTTPException(status_code=404, detail=f"Product with ID {product_id} not found")

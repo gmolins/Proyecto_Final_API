@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 class OrderBase(SQLModel):
     created_at: datetime
-    product_data: Optional[Dict] = Field(default=None, sa_column=Column(JSONB))
+    products: Optional[list[Dict]] = Field(default=None, sa_column=Column(JSONB))
 
 class Order(OrderBase, table=True):
     id: int = Field(default=None, primary_key=True)

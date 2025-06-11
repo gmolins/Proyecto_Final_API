@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from log.logger import logger
 from log.middleware import log_middleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from routes import auth, order, user, status, product
+from routes import auth, order, user, status, product, reporting
 
 import uvicorn
 
@@ -29,6 +29,7 @@ app.include_router(product.router, prefix="/api/products", tags=["Products"])
 app.include_router(order.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(user.router, prefix="/api/users", tags=["Users"])
 app.include_router(status.router, prefix="/api/status", tags=["Status"])
+app.include_router(reporting.router, prefix="/api/reporting", tags=["Reporting"])
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/", response_class=HTMLResponse)

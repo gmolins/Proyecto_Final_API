@@ -27,7 +27,7 @@ def read_all(session: Session = Depends(get_session)):
     return get_status(session)
 
 @router.get("/{status_id}", response_model=StatusRead)
-def read(status_id: int, session: Session = Depends(get_session)):
+def read_by_id(status_id: int, session: Session = Depends(get_session)):
     status = get_status_by_id(session, status_id)
     if not status:
         raise HTTPException(status_code=404, detail=f"Task with ID {status_id} not found")
@@ -41,7 +41,7 @@ def read_by_title(name: str, session: Session = Depends(get_session)):
     return status
 
 @router.put("/{status_id}", response_model=Status)
-def update(
+def update_by_id(
     status_id: int,
     status_data: dict = Body(
         ...,
@@ -61,7 +61,7 @@ def update(
     return updated_status
 
 @router.delete("/{status_id}", response_model=Status)
-def delete(status_id: int, session: Session = Depends(get_session), current_user: dict = Depends(require_role("admin"))):
+def delete_by_id(status_id: int, session: Session = Depends(get_session), current_user: dict = Depends(require_role("admin"))):
     deleted_status = delete_status_by_id(session, status_id)
     if not deleted_status:
         raise HTTPException(status_code=404, detail=f"Status with ID {status_id} not found")

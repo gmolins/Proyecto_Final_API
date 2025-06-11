@@ -15,7 +15,7 @@ def get_orders(session: Session):
 def get_order_by_id(session: Session, order_id: int):
     return session.get(Order, order_id)
 
-def update_order(session: Session, order_id: int, order_data: dict):
+def update_order_by_id(session: Session, order_id: int, order_data: dict):
     order = session.get(Order, order_id)
     if not order:
         return None
@@ -25,7 +25,7 @@ def update_order(session: Session, order_id: int, order_data: dict):
     session.refresh(order)
     return order
 
-def delete_order(session: Session, order_id: int):
+def delete_order_by_id(session: Session, order_id: int):
     order = session.get(Order, order_id)
     if order:
         session.delete(order)

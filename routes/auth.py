@@ -7,7 +7,7 @@ from sqlmodel import Session
 from auth.jwt import create_access_token, create_refresh_token, decode_refresh_token, revoke_token, decode_access_token
 from auth.hashing import hash_password, verify_password
 from db.database import get_session
-from auth.dependencies import get_current_user, oauth2_scheme
+from auth.dependencies import get_current_user, oauth2_scheme, require_ownership_or_admin
 from models.user import User, UserCreate, UserRead
 from datetime import datetime
 
@@ -39,7 +39,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
     user = session.scalars(query).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token({"sub": user.username}, role=user.role)
+    token = create_access_token({"sub": user.username, "id": user.id}, role=user.role)
     refresh_token = create_refresh_token({"sub": user.username})
     user.refresh_token = refresh_token
     session.add(user)
