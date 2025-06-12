@@ -68,9 +68,8 @@ def update_by_id(
         }]
     ),
     session: Session = Depends(get_session),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role("admin"))
 ):
-    require_ownership_or_admin(user_id, current_user)
     updated_user = update_user_by_id(session, user_id, user_data)
     if not updated_user:
         raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found")
@@ -87,9 +86,8 @@ def update_by_name(
         }]
     ),
     session: Session = Depends(get_session),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role("admin"))
 ):
-    require_ownership_or_admin(name, current_user)
     updated_user = update_user_by_name(session, name, user_data)
     if not updated_user:
         raise HTTPException(status_code=404, detail=f"User with name '{name}' not found")
