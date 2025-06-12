@@ -37,8 +37,14 @@
                 <td>{{ "%.2f"|format(row[4]) }}</td>
             </tr>
             {% endfor %}
+            <tr>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td>Total</td>
+                <td>{{ "%.2f"|format(total) }}</td>
+            </tr>
         </tbody>
     </table>
-    <p>Order total: {{ "%.2f"|format(total) }}</p>
 </body>
 </html>
