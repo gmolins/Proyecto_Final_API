@@ -115,5 +115,5 @@ async def get_order_pdf(order_id: int, session: Session = Depends(get_session), 
     return Response(
         pdf_buffer.getvalue(),
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=order_data_{order_id}.pdf"}
+        headers={"Content-Disposition": f"attachment; filename=order_data_{order_id}_{datetime.today().date()}.csv.pdf"}
     )
