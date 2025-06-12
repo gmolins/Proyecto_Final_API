@@ -67,13 +67,12 @@ def update_by_id(
         }
     ]),
     session: Session = Depends(get_session),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_role("admin"))
 ):
     order = get_order_by_id(session, order_id)
     if not order:
         raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found")
-    require_ownership_or_admin(order.user_id, current_user)
-
+    
     updated_order = update_order_by_id(session, order_id, order_data)
     return updated_order
 
