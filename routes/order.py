@@ -24,7 +24,7 @@ def create(order: OrderCreate, session: Session = Depends(get_session), current_
     
     require_ownership_or_admin(user.id, current_user)
     
-    order_data = Order(**order.model_dump(exclude={"user_name"}), user_id=user.id, status_id=1)
+    order_data = Order(**order.model_dump(exclude={"user_name", "products"}), user_id=user.id, status_id=1, products=None)
     created_order = create_order(session, order_data)
     session.refresh(created_order)  # Refresh to load relationships
     return created_order
